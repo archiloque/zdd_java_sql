@@ -1,0 +1,16 @@
+database:
+  driverClass: org.postgresql.Driver
+  user: zdd_java_sql
+  password: zdd_java_sql
+  url: jdbc:postgresql://localhost:5432/zdd_java_sql_v5
+  properties:
+    charSet: UTF-8
+    hibernate.dialect: org.hibernate.dialect.PostgreSQLDialect
+server:
+    rootPath: /*
+
+logging:
+  level: INFO
+  loggers:
+    com.octo.: DEBUG
+    org.hibernate.SQL.: DEBUG

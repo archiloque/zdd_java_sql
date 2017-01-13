@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+         http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.1.xsd">
+
+    <changeSet id="1" author="Julien Kirch">
+        <createTable tableName="person">
+            <column name="id" type="BIGSERIAL" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="name" type="text">
+                <constraints nullable="false"/>
+            </column>
+            <column name="address" type="text">
+                <constraints nullable="true"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="2" author="Julien Kirch">
+        <createTable tableName="address">
+            <column name="id" type="BIGSERIAL" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="person_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="address" type="text">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <addForeignKeyConstraint baseColumnNames="person_id"
+                                 baseTableName="address"
+                                 referencedColumnNames="id"
+                                 referencedTableName="person"
+                                 constraintName="fk_address_person"
+        />
+
+    </changeSet>
+
+    <changeSet id="3" author="Julien Kirch">
+        <customChange class="com.octo.zdd_java_sql.migrations.AddressToDedicatedTableMigration"/>
+    </changeSet>
+
+    <changeSet id="4" author="Julien Kirch">
+        <dropColumn tableName="person" columnName="address" />
+    </changeSet>
+
+
+</databaseChangeLog>
