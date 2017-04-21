@@ -54,9 +54,9 @@ public class PersonResource {
     @UnitOfWork
     @NotNull
     public Response getPerson(@PathParam("id") LongParam personId) {
-        Optional<PersonEntity> optionalPersonEntity = personDAO.findById(personId.get());
-        if (optionalPersonEntity.isPresent()) {
-            return Response.status(Response.Status.OK).entity(personFromEntity(optionalPersonEntity.get())).build();
+        PersonEntity personEntity = personDAO.findById(personId.get());
+        if (personEntity != null) {
+            return Response.status(Response.Status.OK).entity(personFromEntity(personEntity)).build();
         } else {
             return createPersonNotFoundResponse();
         }
@@ -67,9 +67,9 @@ public class PersonResource {
     @UnitOfWork
     @NotNull
     public Response deletePerson(@PathParam("id") LongParam personId) {
-        Optional<PersonEntity> optionalPersonEntity = personDAO.findById(personId.get());
-        if (optionalPersonEntity.isPresent()) {
-            personDAO.delete(optionalPersonEntity.get());
+        PersonEntity personEntity = personDAO.findById(personId.get());
+        if (personEntity != null) {
+            personDAO.delete(personEntity);
             return Response.status(Response.Status.NO_CONTENT).build();
         } else {
             return createPersonNotFoundResponse();
@@ -88,9 +88,8 @@ public class PersonResource {
             return validationResponse.get();
         }
 
-        Optional<PersonEntity> optionalPersonEntity = personDAO.findById(personId.get());
-        if (optionalPersonEntity.isPresent()) {
-            PersonEntity personEntity = optionalPersonEntity.get();
+        PersonEntity personEntity = personDAO.findById(personId.get());
+        if (personEntity != null) {
             personEntity.setName(person.getName());
             personEntity.setAddress(person.getAddress());
             personDAO.update(personEntity);

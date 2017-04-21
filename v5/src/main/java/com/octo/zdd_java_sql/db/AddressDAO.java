@@ -4,9 +4,9 @@ import com.octo.zdd_java_sql.core.AddressEntity;
 import com.octo.zdd_java_sql.core.PersonEntity;
 import org.hibernate.SessionFactory;
 
+import javax.annotation.Nullable;
 import javax.validation.constraints.NotNull;
 import java.util.List;
-import java.util.Optional;
 
 public class AddressDAO extends AbstractDAO<AddressEntity> {
 
@@ -28,13 +28,12 @@ public class AddressDAO extends AbstractDAO<AddressEntity> {
                 executeUpdate();
     }
 
-    @NotNull
-    public Optional<AddressEntity> findByIdAndPersonId(@NotNull Long addressId, @NotNull Long personId) {
-        return Optional.ofNullable(
-                uniqueResult(
-                        namedQuery("com.octo.zdd_java_sql.core.AddressEntity.findByIdAndPersonId").
-                                setParameter("personId", personId).
-                                setParameter("addressId", addressId)));
+    @Nullable
+    public AddressEntity findByIdAndPersonId(@NotNull Long addressId, @NotNull Long personId) {
+        return uniqueResult(
+                namedQuery("com.octo.zdd_java_sql.core.AddressEntity.findByIdAndPersonId").
+                        setParameter("personId", personId).
+                        setParameter("addressId", addressId));
     }
 
     @NotNull

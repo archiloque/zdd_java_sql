@@ -46,7 +46,7 @@
     </changeSet>
 
     <changeSet id="4" author="Julien Kirch">
-        <dropColumn tableName="person" columnName="address" />
+        <dropColumn tableName="person" columnName="address"/>
     </changeSet>
 
 

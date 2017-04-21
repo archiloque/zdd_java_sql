@@ -3,7 +3,6 @@ package com.octo.zdd_java_sql;
 import com.octo.zdd_java_sql.db.AddressDAO;
 import com.octo.zdd_java_sql.db.PersonDAO;
 import com.octo.zdd_java_sql.resources.v1.PersonResource;
-import com.octo.zdd_java_sql.resources.v2.AddressResource;
 import io.dropwizard.db.DataSourceFactory;
 import io.dropwizard.hibernate.ScanningHibernateBundle;
 import io.dropwizard.migrations.MigrationsBundle;
@@ -49,7 +48,6 @@ public class Application extends io.dropwizard.Application<Configuration> {
         final PersonDAO personDAO = new PersonDAO(hibernateBundle.getSessionFactory());
         final AddressDAO addressDAO = new AddressDAO(hibernateBundle.getSessionFactory());
         environment.jersey().register(new PersonResource(personDAO, addressDAO));
-        environment.jersey().register(new AddressResource(personDAO, addressDAO));
     }
 
 

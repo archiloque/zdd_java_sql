@@ -9,7 +9,6 @@ import javax.validation.ConstraintViolationException;
 import javax.validation.constraints.NotNull;
 import java.io.FileNotFoundException;
 import java.util.List;
-import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -36,9 +35,8 @@ public class AddressDAOTest extends AbstractDAOTest {
         assertThat(jeffAddress.getAddress()).isEqualTo("Near the old shore");
         assertThat(jeffAddress.getPerson().getId()).isEqualTo(jeff.getId());
 
-        Optional<AddressEntity> optionalActual = addressDAO.findByIdAndPersonId(jeffAddress.getId(), jeff.getId());
-        assertThat(optionalActual.isPresent()).isTrue();
-        AddressEntity actual = optionalActual.get();
+        AddressEntity actual = addressDAO.findByIdAndPersonId(jeffAddress.getId(), jeff.getId());
+        assertThat(actual).isNotNull();
         assertThat(actual.getId()).isEqualTo(jeffAddress.getId());
         assertThat(actual.getAddress()).isEqualTo(jeffAddress.getAddress());
         assertThat(actual.getPerson().getId()).isEqualTo(jeffAddress.getPerson().getId());
@@ -61,18 +59,17 @@ public class AddressDAOTest extends AbstractDAOTest {
         PersonEntity jeff = createPersonWithAddress("Jeff", "Near the old shore");
         AddressEntity jeffAddress = addressDAO.create("Near the old shore", jeff);
 
-        Optional<AddressEntity> optionalFound = addressDAO.findByIdAndPersonId(jeffAddress.getId(), jeff.getId());
-        assertThat(optionalFound.isPresent()).isTrue();
-        AddressEntity found = optionalFound.get();
+        AddressEntity found = addressDAO.findByIdAndPersonId(jeffAddress.getId(), jeff.getId());
+        assertThat(found).isNotNull();
         assertThat(jeffAddress.getAddress()).isEqualTo(found.getAddress());
         assertThat(jeffAddress.getPerson().getId()).isEqualTo(found.getPerson().getId());
 
-        Optional<AddressEntity> optionalNotFound = addressDAO.findByIdAndPersonId((long) -1, (long) -1);
-        assertThat(optionalNotFound.isPresent()).isFalse();
-        optionalNotFound = addressDAO.findByIdAndPersonId(jeffAddress.getId(), (long) -1);
-        assertThat(optionalNotFound.isPresent()).isFalse();
-        optionalNotFound = addressDAO.findByIdAndPersonId((long) -1, jeff.getId());
-        assertThat(optionalNotFound.isPresent()).isFalse();
+        AddressEntity notFound = addressDAO.findByIdAndPersonId((long) -1, (long) -1);
+        assertThat(notFound).isNull();
+        notFound = addressDAO.findByIdAndPersonId(jeffAddress.getId(), (long) -1);
+        assertThat(notFound).isNull();
+        notFound = addressDAO.findByIdAndPersonId((long) -1, jeff.getId());
+        assertThat(notFound).isNull();
     }
 
     @Test(expected = ConstraintViolationException.class)

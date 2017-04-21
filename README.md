@@ -7,12 +7,19 @@ Subdirectories contain the different versions of the project to show the steps.
 
 Versions
 ---
-- `v1` Initial version, store the adress in the `address` column of the `Person` table
+- `v1` Initial version, store the address in the `address` column of the `Person` table
 - `v2` Add new `Address` table, not used by the code
-- `v3` Provide the `/v2` API and can store address in the `address` column of the `Person` table or in the `Address` table
-- `v4` Migration to all addresses to the `Address` table
-- `v5` Remove knowledge of the `address` column
+- `v3` Can store address in the `address` column of the `Person` table or in the `Address` table
+- `v4` Migrate all addresses to the `Address` table
+- `v5` Provide the `/v2` API, remove knowledge of the `address` column from the code
 - `v6` Drop the `address` column
+
+Prerequisites
+---
+
+- A local PostgreSQL database
+- A `zdd_java_sql` user with a `zdd_java_sql` password
+- Run `reset_databases.sh` to create the databases
 
 How to start one of the applications
 ---

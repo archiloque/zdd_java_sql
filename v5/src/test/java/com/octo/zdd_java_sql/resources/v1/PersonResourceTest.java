@@ -21,7 +21,6 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.junit.Assert.fail;
@@ -87,7 +86,7 @@ public class PersonResourceTest extends AbstractResourceTest {
     @Test
     public void testFindByIdFound() {
         PersonEntity personEntity = createPersonEntity(1L, "John Doe");
-        when(personDAO.findByIdWithJoin(1L)).thenReturn(Optional.of(personEntity));
+        when(personDAO.findByIdWithJoin(1L)).thenReturn(personEntity);
         Person actual = resources.client().target("/v1/people/1").request().get(Person.class);
         assertThat(actual.getId())
                 .isEqualTo(personEntity.getId());
@@ -156,7 +155,7 @@ public class PersonResourceTest extends AbstractResourceTest {
 
     @Test
     public void testFindByIdNotFound() {
-        when(personDAO.findByIdWithJoin(1L)).thenReturn(Optional.empty());
+        when(personDAO.findByIdWithJoin(1L)).thenReturn(null);
         try {
             resources.client().target("/v1/people/1").request().get(ErrorResult.class);
             fail();
@@ -168,7 +167,7 @@ public class PersonResourceTest extends AbstractResourceTest {
     @Test
     public void testDeleteFound() {
         PersonEntity personEntity = createPersonEntity(1L, "John Doe");
-        when(personDAO.findByIdWithLock(1L)).thenReturn(Optional.of(personEntity));
+        when(personDAO.findByIdWithLock(1L)).thenReturn(personEntity);
         Response response = resources.client().target("/v1/people/1").request().delete();
         assertThat(response.getStatus()).isEqualTo(Response.Status.NO_CONTENT.getStatusCode());
         verify(personDAO).findByIdWithLock(1L);
@@ -178,7 +177,7 @@ public class PersonResourceTest extends AbstractResourceTest {
 
     @Test
     public void testDeleteNotFound() {
-        when(personDAO.findByIdWithLock(1L)).thenReturn(Optional.empty());
+        when(personDAO.findByIdWithLock(1L)).thenReturn(null);
         try {
             resources.client().target("/v1/people/1").request().delete(ErrorResult.class);
             fail();
@@ -191,7 +190,7 @@ public class PersonResourceTest extends AbstractResourceTest {
     @Test
     public void testUpdateWithAddressOk() {
         PersonEntity personEntity1 = createPersonEntity(1L, "John Doe");
-        when(personDAO.findByIdWithLock(1L)).thenReturn(Optional.of(personEntity1));
+        when(personDAO.findByIdWithLock(1L)).thenReturn(personEntity1);
 
         Person person = new Person(1L, "John Doea", "Near the shorea");
 
@@ -218,7 +217,7 @@ public class PersonResourceTest extends AbstractResourceTest {
     @Test
     public void testUpdateWithoutAddressOk() {
         PersonEntity person1 = createPersonEntity(1L, "John Doe");
-        when(personDAO.findByIdWithLock(1L)).thenReturn(Optional.of(person1));
+        when(personDAO.findByIdWithLock(1L)).thenReturn(person1);
 
         PersonEntity person2 = createPersonEntity(1L, "John Doea");
         Person person = new Person(1, "John Doea", null);
@@ -241,7 +240,7 @@ public class PersonResourceTest extends AbstractResourceTest {
     @Test
     public void testUpdateKoNotFound() {
         Person person = new Person(1L, "John Doe", "Near the shore");
-        when(personDAO.findByIdWithLock(1L)).thenReturn(Optional.empty());
+        when(personDAO.findByIdWithLock(1L)).thenReturn(null);
         try {
             resources.
                     client().

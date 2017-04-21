@@ -22,7 +22,6 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.junit.Assert.fail;
@@ -57,7 +56,7 @@ public class AddressResourceTest extends AbstractResourceTest {
 
     @Test
     public void testFindByAllNotFound() {
-        when(personDAO.findByIdWithLock(1L)).thenReturn(Optional.empty());
+        when(personDAO.findByIdWithLock(1L)).thenReturn(null);
         try {
             resources.client().target("/v2/people/1/addresses").request().get(ErrorResult.class);
             fail();
@@ -70,7 +69,7 @@ public class AddressResourceTest extends AbstractResourceTest {
     @Test
     public void testFindAllEmpty() {
         PersonEntity personEntity = createPersonEntity(1L, "John Doe");
-        when(personDAO.findByIdWithLock(1L)).thenReturn(Optional.of(personEntity));
+        when(personDAO.findByIdWithLock(1L)).thenReturn(personEntity);
         when(addressDAO.findByPerson(personEntity)).thenReturn(new ArrayList<>());
         Addresses actual = resources.client().target("/v2/people/1/addresses").request().get(Addresses.class);
         assertThat(actual.getAddresses().size()).isEqualTo(0);
@@ -82,7 +81,7 @@ public class AddressResourceTest extends AbstractResourceTest {
     public void testFindAllSomethingNewPersistence() {
         PersonEntity personEntity = createPersonEntity(1L, "John Doe");
         AddressEntity addressEntity = createAddressEntity(1L, "Near the shore", personEntity);
-        when(personDAO.findByIdWithLock(1L)).thenReturn(Optional.of(personEntity));
+        when(personDAO.findByIdWithLock(1L)).thenReturn(personEntity);
         List<AddressEntity> addressesEntities = new ArrayList<>();
         addressesEntities.add(addressEntity);
         when(addressDAO.findByPerson(personEntity)).thenReturn(addressesEntities);
@@ -103,7 +102,7 @@ public class AddressResourceTest extends AbstractResourceTest {
     public void testFindByIdFound() {
         PersonEntity personEntity = createPersonEntity(1L, "John Doe");
         AddressEntity addressEntity = createAddressEntity(1L, "Near the shore", personEntity);
-        when(addressDAO.findByIdAndPersonId(1L, 1L)).thenReturn(Optional.of(addressEntity));
+        when(addressDAO.findByIdAndPersonId(1L, 1L)).thenReturn(addressEntity);
         Address actual = resources.client().target("/v2/people/1/addresses/1").request().get(Address.class);
         assertThat(actual.getId())
                 .isEqualTo(addressEntity.getId());
@@ -117,7 +116,7 @@ public class AddressResourceTest extends AbstractResourceTest {
     @Test
     public void testCreateOk() {
         PersonEntity personEntity = createPersonEntity(1L, "John Doe");
-        when(personDAO.findById(1L)).thenReturn(Optional.of(personEntity));
+        when(personDAO.findById(1L)).thenReturn(personEntity);
         AddressEntity addressEntity = createAddressEntity(1L, "Near the shore", personEntity);
         when(addressDAO.create("Near the shore", personEntity)).thenReturn(addressEntity);
         Address address = new Address(1L, "Near the shore", personEntity.getId());
@@ -152,7 +151,7 @@ public class AddressResourceTest extends AbstractResourceTest {
 
     @Test
     public void testCreateKoNoPerson() {
-        when(personDAO.findById(1L)).thenReturn(Optional.empty());
+        when(personDAO.findById(1L)).thenReturn(null);
         Address address = new Address(1L, "Near the shore", 1L);
         try {
             resources.
@@ -167,7 +166,7 @@ public class AddressResourceTest extends AbstractResourceTest {
 
     @Test
     public void testFindByIdNotFound() {
-        when(addressDAO.findByIdAndPersonId(1L, 1L)).thenReturn(Optional.empty());
+        when(addressDAO.findByIdAndPersonId(1L, 1L)).thenReturn(null);
         try {
             resources.client().target("/v2/people/1/addresses/1").request().get(ErrorResult.class);
             fail();
@@ -181,7 +180,7 @@ public class AddressResourceTest extends AbstractResourceTest {
         PersonEntity personEntity = createPersonEntity(1L, "John Doe");
         AddressEntity addressEntity = createAddressEntity(1L, "Near the shore", personEntity);
 
-        when(addressDAO.findByIdAndPersonId(1L, 1L)).thenReturn(Optional.of(addressEntity));
+        when(addressDAO.findByIdAndPersonId(1L, 1L)).thenReturn(addressEntity);
         Response response = resources.client().target("/v2/people/1/addresses/1").request().delete();
         assertThat(response.getStatus()).isEqualTo(Response.Status.NO_CONTENT.getStatusCode());
         verify(addressDAO).findByIdAndPersonId(1L, 1L);
@@ -190,7 +189,7 @@ public class AddressResourceTest extends AbstractResourceTest {
 
     @Test
     public void testDeleteNotFound() {
-        when(addressDAO.findByIdAndPersonId(1L, 1L)).thenReturn(Optional.empty());
+        when(addressDAO.findByIdAndPersonId(1L, 1L)).thenReturn(null);
         try {
             resources.client().target("/v2/people/1/addresses/1").request().delete(ErrorResult.class);
             fail();
@@ -205,7 +204,7 @@ public class AddressResourceTest extends AbstractResourceTest {
         PersonEntity personEntity = createPersonEntity(1L, "John Doe");
         AddressEntity addressEntity1 = createAddressEntity(1L, "Near the shore", personEntity);
         AddressEntity addressEntity2 = createAddressEntity(1L, "Near the shorea", personEntity);
-        when(addressDAO.findByIdAndPersonId(1L, 1L)).thenReturn(Optional.of(addressEntity1));
+        when(addressDAO.findByIdAndPersonId(1L, 1L)).thenReturn(addressEntity1);
         when(addressDAO.update(addressEntity1)).thenReturn(addressEntity2);
 
         Address address = new Address(1l, "Near the shore", 1L);
@@ -227,7 +226,7 @@ public class AddressResourceTest extends AbstractResourceTest {
     @Test
     public void testUpdateKoNotFound() {
         Address address = new Address(1L, "Near the shore", 1L);
-        when(addressDAO.findByIdAndPersonId(1L, 1L)).thenReturn(Optional.empty());
+        when(addressDAO.findByIdAndPersonId(1L, 1L)).thenReturn(null);
         try {
             resources.
                     client().

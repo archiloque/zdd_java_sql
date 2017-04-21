@@ -10,6 +10,7 @@ import com.octo.zdd_java_sql.db.PersonDAO;
 import io.dropwizard.hibernate.UnitOfWork;
 import io.dropwizard.jersey.params.LongParam;
 
+import javax.annotation.Nullable;
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
@@ -23,7 +24,6 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.net.URI;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Path("/v2/people")
@@ -47,10 +47,8 @@ public class AddressResource extends BaseResource {
     @UnitOfWork
     @NotNull
     public Response list(@PathParam("personId") LongParam personId) {
-        Optional<PersonEntity> optionalPersonEntity = personDAO.findByIdWithLock(personId.get());
-        if (optionalPersonEntity.isPresent()) {
-            PersonEntity personEntity = optionalPersonEntity.get();
-
+        PersonEntity personEntity = personDAO.findByIdWithLock(personId.get());
+        if (personEntity != null) {
             List<Address> addressesList = addressDAO.
                     findByPerson(personEntity).
                     stream().
@@ -70,9 +68,9 @@ public class AddressResource extends BaseResource {
     @UnitOfWork
     @NotNull
     public Response getAddress(@PathParam("personId") LongParam personId, @PathParam("addressId") LongParam addressId) {
-        Optional<AddressEntity> optionalAddressEntity = addressDAO.findByIdAndPersonId(addressId.get(), personId.get());
-        if (optionalAddressEntity.isPresent()) {
-            return Response.status(Response.Status.OK).entity(addressFromEntity(optionalAddressEntity.get())).build();
+        AddressEntity addressEntity = addressDAO.findByIdAndPersonId(addressId.get(), personId.get());
+        if (addressEntity != null) {
+            return Response.status(Response.Status.OK).entity(addressFromEntity(addressEntity)).build();
         } else {
             return createAddressNotFoundResponse();
         }
@@ -83,9 +81,9 @@ public class AddressResource extends BaseResource {
     @UnitOfWork
     @NotNull
     public Response deleteAddress(@PathParam("personId") LongParam personId, @PathParam("addressId") LongParam addressId) {
-        Optional<AddressEntity> optionalAddressEntity = addressDAO.findByIdAndPersonId(addressId.get(), personId.get());
-        if (optionalAddressEntity.isPresent()) {
-            addressDAO.delete(optionalAddressEntity.get());
+        AddressEntity addressEntity = addressDAO.findByIdAndPersonId(addressId.get(), personId.get());
+        if (addressEntity != null) {
+            addressDAO.delete(addressEntity);
             return Response.status(Response.Status.NO_CONTENT).build();
         } else {
             return createAddressNotFoundResponse();
@@ -102,15 +100,14 @@ public class AddressResource extends BaseResource {
             @PathParam("personId") LongParam personId,
             @PathParam("addressId") LongParam addressId,
             @NotNull Address address) {
-        Optional<Response> validationResponse = validateAddress(address);
-        if (validationResponse.isPresent()) {
-            return validationResponse.get();
+        Response validationResponse = validateAddress(address);
+        if (validationResponse != null) {
+            return validationResponse;
         }
 
-        Optional<AddressEntity> optionalAddressEntity = addressDAO.findByIdAndPersonId(addressId.get(), personId.get());
+        AddressEntity addressEntity = addressDAO.findByIdAndPersonId(addressId.get(), personId.get());
 
-        if (optionalAddressEntity.isPresent()) {
-            AddressEntity addressEntity = optionalAddressEntity.get();
+        if (addressEntity != null) {
             addressEntity.setAddress(address.getAddress());
             addressEntity = addressDAO.update(addressEntity);
             return Response.status(Response.Status.OK).entity(addressFromEntity(addressEntity)).build();
@@ -127,14 +124,14 @@ public class AddressResource extends BaseResource {
     public Response addAddress(
             @PathParam("personId") LongParam personId,
             @NotNull Address address) {
-        Optional<Response> validationResponse = validateAddress(address);
-        if (validationResponse.isPresent()) {
-            return validationResponse.get();
+        Response validationResponse = validateAddress(address);
+        if (validationResponse != null) {
+            return validationResponse;
         }
 
-        Optional<PersonEntity> optionalPersonEntity = personDAO.findById(personId.get());
-        if (optionalPersonEntity.isPresent()) {
-            AddressEntity addressEntity = addressDAO.create(address.getAddress(), optionalPersonEntity.get());
+        PersonEntity personEntity = personDAO.findById(personId.get());
+        if (personEntity != null) {
+            AddressEntity addressEntity = addressDAO.create(address.getAddress(), personEntity);
             return Response.created(URI.create("/v2/people/" + personId.get())).entity(addressFromEntity(addressEntity)).build();
         } else {
             return createPersonNotFoundResponse();
@@ -156,12 +153,12 @@ public class AddressResource extends BaseResource {
     }
 
     private
-    @NotNull
-    Optional<Response> validateAddress(@NotNull Address address) {
+    @Nullable
+    Response validateAddress(@NotNull Address address) {
         if (address.getAddress() == null) {
-            return Optional.of(Response.status(Response.Status.BAD_REQUEST).entity(new Error("Address is missing")).build());
+            return Response.status(Response.Status.BAD_REQUEST).entity(new Error("Address is missing")).build();
         } else {
-            return Optional.empty();
+            return null;
         }
     }
 

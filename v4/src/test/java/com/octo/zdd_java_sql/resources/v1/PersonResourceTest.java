@@ -7,13 +7,14 @@ import com.octo.zdd_java_sql.core.AddressEntity;
 import com.octo.zdd_java_sql.core.PersonEntity;
 import com.octo.zdd_java_sql.db.AddressDAO;
 import com.octo.zdd_java_sql.db.PersonDAO;
-import com.octo.zdd_java_sql.resources.AbstractResourceTest;
 import io.dropwizard.testing.junit.ResourceTestRule;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Test;
 
+import javax.annotation.Nullable;
+import javax.validation.constraints.NotNull;
 import javax.ws.rs.BadRequestException;
 import javax.ws.rs.NotFoundException;
 import javax.ws.rs.client.Entity;
@@ -21,7 +22,6 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.junit.Assert.fail;
@@ -30,7 +30,7 @@ import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class PersonResourceTest extends AbstractResourceTest {
+public class PersonResourceTest {
 
     private static final PersonDAO personDAO = mock(PersonDAO.class);
 
@@ -108,7 +108,7 @@ public class PersonResourceTest extends AbstractResourceTest {
     public void testFindByIdFoundOldPersistence() {
         PersonEntity personEntity = createPersonEntity(1L, "John Doe", "Near the shore");
         personEntity.setAddresses(new ArrayList<>());
-        when(personDAO.findByIdWithJoin(1L)).thenReturn(Optional.of(personEntity));
+        when(personDAO.findByIdWithJoin(1L)).thenReturn(personEntity);
         Person actual = resources.client().target("/v1/people/1").request().get(Person.class);
         assertThat(actual.getId())
                 .isEqualTo(personEntity.getId());
@@ -126,7 +126,7 @@ public class PersonResourceTest extends AbstractResourceTest {
         List<AddressEntity> addresses = new ArrayList<>();
         addresses.add(addressEntity);
         personEntity.setAddresses(addresses);
-        when(personDAO.findByIdWithJoin(1L)).thenReturn(Optional.of(personEntity));
+        when(personDAO.findByIdWithJoin(1L)).thenReturn(personEntity);
         Person actual = resources.client().target("/v1/people/1").request().get(Person.class);
         assertThat(actual.getId())
                 .isEqualTo(personEntity.getId());
@@ -198,7 +198,7 @@ public class PersonResourceTest extends AbstractResourceTest {
 
     @Test
     public void testFindByIdNotFound() {
-        when(personDAO.findByIdWithJoin(1L)).thenReturn(Optional.empty());
+        when(personDAO.findByIdWithJoin(1L)).thenReturn(null);
         try {
             resources.client().target("/v1/people/1").request().get(ErrorResult.class);
             fail();
@@ -210,7 +210,7 @@ public class PersonResourceTest extends AbstractResourceTest {
     @Test
     public void testDeleteFoundWithOldAddress() {
         PersonEntity personEntity = createPersonEntity(1L, "John Doe", "Near the shore");
-        when(personDAO.findByIdWithLock(1L)).thenReturn(Optional.of(personEntity));
+        when(personDAO.findByIdWithLock(1L)).thenReturn(personEntity);
         Response response = resources.client().target("/v1/people/1").request().delete();
         assertThat(response.getStatus()).isEqualTo(Response.Status.NO_CONTENT.getStatusCode());
         verify(personDAO).findByIdWithLock(1L);
@@ -220,7 +220,7 @@ public class PersonResourceTest extends AbstractResourceTest {
     @Test
     public void testDeleteFoundWithNewAddress() {
         PersonEntity personEntity = createPersonEntity(1L, "John Doe", null);
-        when(personDAO.findByIdWithLock(1L)).thenReturn(Optional.of(personEntity));
+        when(personDAO.findByIdWithLock(1L)).thenReturn(personEntity);
         Response response = resources.client().target("/v1/people/1").request().delete();
         assertThat(response.getStatus()).isEqualTo(Response.Status.NO_CONTENT.getStatusCode());
         verify(personDAO).findByIdWithLock(1L);
@@ -230,7 +230,7 @@ public class PersonResourceTest extends AbstractResourceTest {
 
     @Test
     public void testDeleteNotFound() {
-        when(personDAO.findByIdWithLock(1L)).thenReturn(Optional.empty());
+        when(personDAO.findByIdWithLock(1L)).thenReturn(null);
         try {
             resources.client().target("/v1/people/1").request().delete(ErrorResult.class);
             fail();
@@ -243,7 +243,7 @@ public class PersonResourceTest extends AbstractResourceTest {
     @Test
     public void testUpdateWithAddressOkOldPersistence() {
         PersonEntity personEntity1 = createPersonEntity(1L, "John Doe", "Near the shore");
-        when(personDAO.findByIdWithLock(1L)).thenReturn(Optional.of(personEntity1));
+        when(personDAO.findByIdWithLock(1L)).thenReturn(personEntity1);
         Person person = new Person(1, "John Doea", "Near the shorea");
         PersonEntity personEntity2 = createPersonEntity(1L, "John Doea", null);
         AddressEntity addressEntity = createAddressEntity(2L, "Near the shore", personEntity2);
@@ -269,7 +269,7 @@ public class PersonResourceTest extends AbstractResourceTest {
     @Test
     public void testUpdateWithAddressOkNewPersistence() {
         PersonEntity personEntity1 = createPersonEntity(1L, "John Doe", null);
-        when(personDAO.findByIdWithLock(1L)).thenReturn(Optional.of(personEntity1));
+        when(personDAO.findByIdWithLock(1L)).thenReturn(personEntity1);
 
         Person person = new Person(1L, "John Doea", "Near the shorea");
 
@@ -298,7 +298,7 @@ public class PersonResourceTest extends AbstractResourceTest {
     public void testUpdateWithoutAddressOkOldPersistence() {
         PersonEntity person1 = createPersonEntity(1L, "John Doe", "Near the shore");
         person1.setAddresses(new ArrayList<>());
-        when(personDAO.findByIdWithLock(1L)).thenReturn(Optional.of(person1));
+        when(personDAO.findByIdWithLock(1L)).thenReturn(person1);
         PersonEntity person2 = createPersonEntity(1L, "John Doea", null);
         person2.setAddresses(new ArrayList<>());
         Person person = new Person(1L, "John Doea", null);
@@ -323,7 +323,7 @@ public class PersonResourceTest extends AbstractResourceTest {
     public void testUpdateWithoutAddressOkNewPersistence() {
         PersonEntity person1 = createPersonEntity(1L, "John Doe", null);
         person1.setAddresses(new ArrayList<>());
-        when(personDAO.findByIdWithLock(1L)).thenReturn(Optional.of(person1));
+        when(personDAO.findByIdWithLock(1L)).thenReturn(person1);
 
         PersonEntity person2 = createPersonEntity(1L, "John Doea", null);
         person2.setAddresses(new ArrayList<>());
@@ -347,7 +347,7 @@ public class PersonResourceTest extends AbstractResourceTest {
     @Test
     public void testUpdateKoNotFound() {
         Person person = new Person(1L, "John Doe", "Near the shore");
-        when(personDAO.findByIdWithLock(1L)).thenReturn(Optional.empty());
+        when(personDAO.findByIdWithLock(1L)).thenReturn(null);
         try {
             resources.
                     client().
@@ -374,5 +374,36 @@ public class PersonResourceTest extends AbstractResourceTest {
         }
     }
 
+
+    @NotNull
+    private PersonEntity createPersonEntity(@Nullable Long id, @Nullable String name, @Nullable String address) {
+        PersonEntity personEntity = new PersonEntity();
+        if (id != null) {
+            personEntity.setId(id);
+        }
+        if (name != null) {
+            personEntity.setName(name);
+        }
+        if (address != null) {
+            personEntity.setAddress(address);
+        }
+        return personEntity;
+    }
+
+
+    @NotNull
+    private AddressEntity createAddressEntity(@Nullable Long id, @Nullable String address, @Nullable PersonEntity personEntity) {
+        AddressEntity addressEntity = new AddressEntity();
+        if (id != null) {
+            addressEntity.setId(id);
+        }
+        if (address != null) {
+            addressEntity.setAddress(address);
+        }
+        if (personEntity != null) {
+            addressEntity.setPerson(personEntity);
+        }
+        return addressEntity;
+    }
 
 }

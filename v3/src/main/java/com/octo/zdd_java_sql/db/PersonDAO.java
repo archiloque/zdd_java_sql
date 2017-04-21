@@ -6,12 +6,12 @@ import org.hibernate.LockMode;
 import org.hibernate.SessionFactory;
 import org.hibernate.transform.BasicTransformerAdapter;
 
+import javax.annotation.Nullable;
 import javax.validation.constraints.NotNull;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 public class PersonDAO extends AbstractDAO<PersonEntity> {
 
@@ -32,29 +32,22 @@ public class PersonDAO extends AbstractDAO<PersonEntity> {
         );
     }
 
-    @NotNull
-    public List<PersonEntity> findAllWithLock() {
-        return list(namedQuery("com.octo.zdd_java_sql.core.PersonEntity.findAllWithLock"));
+    @Nullable
+    public PersonEntity findById(@NotNull Long id) {
+        return get(id);
     }
 
-    @NotNull
-    public Optional<PersonEntity> findById(@NotNull Long id) {
-        return Optional.ofNullable(get(id));
+    @Nullable
+    public PersonEntity findByIdWithLock(@NotNull Long id) {
+        return currentSession().get(PersonEntity.class, id, LockMode.PESSIMISTIC_WRITE);
     }
 
-    @NotNull
-    public Optional<PersonEntity> findByIdWithLock(@NotNull Long id) {
-        PersonEntity person = currentSession().get(PersonEntity.class, id, LockMode.PESSIMISTIC_WRITE);
-        return Optional.ofNullable(person);
-    }
-
-    @NotNull
-    public Optional<PersonEntity> findByIdWithJoin(@NotNull Long id) {
-        return Optional.ofNullable(
-                uniqueResult(
-                        namedQuery("com.octo.zdd_java_sql.core.PersonEntity.findByIdWithJoin").
-                                setParameter("personId", id).
-                                setResultTransformer(new FoldingAddressesResultTransformer())));
+    @Nullable
+    public PersonEntity findByIdWithJoin(@NotNull Long id) {
+        return uniqueResult(
+                namedQuery("com.octo.zdd_java_sql.core.PersonEntity.findByIdWithJoin").
+                        setParameter("personId", id).
+                        setResultTransformer(new FoldingAddressesResultTransformer()));
     }
 
     @NotNull

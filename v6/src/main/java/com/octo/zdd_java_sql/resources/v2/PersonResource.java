@@ -9,6 +9,7 @@ import com.octo.zdd_java_sql.resources.ResourceHelper;
 import io.dropwizard.hibernate.UnitOfWork;
 import io.dropwizard.jersey.params.LongParam;
 
+import javax.annotation.Nullable;
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
@@ -21,7 +22,6 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.net.URI;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Path("/v2/people")
@@ -59,9 +59,9 @@ public class PersonResource extends BaseResource {
     @UnitOfWork
     @NotNull
     public Response getPerson(@PathParam("id") LongParam personId) {
-        Optional<PersonEntity> optionalPersonEntity = personDAO.findById(personId.get());
-        if (optionalPersonEntity.isPresent()) {
-            return Response.status(Response.Status.OK).entity(personFromEntity(optionalPersonEntity.get())).build();
+        PersonEntity personEntity = personDAO.findById(personId.get());
+        if (personEntity != null) {
+            return Response.status(Response.Status.OK).entity(personFromEntity(personEntity)).build();
         } else {
             return createPersonNotFoundResponse();
         }
@@ -72,9 +72,9 @@ public class PersonResource extends BaseResource {
     @UnitOfWork
     @NotNull
     public Response deletePerson(@PathParam("id") LongParam personId) {
-        Optional<Response> response = ResourceHelper.deletePerson(personId, personDAO, addressDAO);
-        if (response.isPresent()) {
-            return response.get();
+        Response response = ResourceHelper.deletePerson(personId, personDAO, addressDAO);
+        if (response != null) {
+            return response;
         } else {
             return createPersonNotFoundResponse();
         }
@@ -87,14 +87,13 @@ public class PersonResource extends BaseResource {
     @UnitOfWork
     @NotNull
     public Response updatePerson(@PathParam("id") LongParam personId, @NotNull Person person) {
-        Optional<Response> validationResponse = validatePerson(person);
-        if (validationResponse.isPresent()) {
-            return validationResponse.get();
+        Response validationResponse = validatePerson(person);
+        if (validationResponse != null) {
+            return validationResponse;
         }
 
-        Optional<PersonEntity> optionalPersonEntity = personDAO.findById(personId.get());
-        if (optionalPersonEntity.isPresent()) {
-            PersonEntity personEntity = optionalPersonEntity.get();
+        PersonEntity personEntity = personDAO.findById(personId.get());
+        if (personEntity != null) {
             personEntity.setName(person.getName());
             personDAO.update(personEntity);
             return Response.status(Response.Status.OK).entity(personFromEntity(personEntity)).build();
@@ -108,9 +107,9 @@ public class PersonResource extends BaseResource {
     @UnitOfWork
     @NotNull
     public Response addPerson(@NotNull Person person) {
-        Optional<Response> validationResponse = validatePerson(person);
-        if (validationResponse.isPresent()) {
-            return validationResponse.get();
+        Response validationResponse = validatePerson(person);
+        if (validationResponse != null) {
+            return validationResponse;
         }
         PersonEntity personEntity = personDAO.create(person.getName());
         return Response.created(URI.create("/v2/people/" + personEntity.getId())).entity(personFromEntity(personEntity)).build();
@@ -126,12 +125,12 @@ public class PersonResource extends BaseResource {
     }
 
     private
-    @NotNull
-    Optional<Response> validatePerson(@NotNull Person person) {
+    @Nullable
+    Response validatePerson(@NotNull Person person) {
         if (person.getName() == null) {
-            return Optional.of(Response.status(Response.Status.BAD_REQUEST).entity(new Error("Name is missing")).build());
+            return Response.status(Response.Status.BAD_REQUEST).entity(new Error("Name is missing")).build();
         } else {
-            return Optional.empty();
+            return null;
         }
     }
 

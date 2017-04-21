@@ -7,7 +7,6 @@ import org.hibernate.SessionFactory;
 import javax.annotation.Nullable;
 import javax.validation.constraints.NotNull;
 import java.util.List;
-import java.util.Optional;
 
 public class PersonDAO extends AbstractDAO<PersonEntity> {
 
@@ -20,9 +19,9 @@ public class PersonDAO extends AbstractDAO<PersonEntity> {
         return list(namedQuery("com.octo.zdd_java_sql.core.PersonEntity.findAll"));
     }
 
-    @NotNull
-    public Optional<PersonEntity> findById(@NotNull Long id) {
-        return Optional.ofNullable(get(id));
+    @Nullable
+    public PersonEntity findById(@NotNull Long id) {
+        return get(id);
     }
 
     @NotNull

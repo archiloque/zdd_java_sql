@@ -7,7 +7,6 @@ import org.junit.Test;
 import javax.validation.ConstraintViolationException;
 import java.io.FileNotFoundException;
 import java.util.List;
-import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -28,9 +27,8 @@ public class PersonDAOTest extends AbstractDAOTest {
         final PersonEntity jeff = daoTestRule.inTransaction(() -> personDAO.create("Jeff", "Near the old shore"));
         assertThat(jeff.getId()).isGreaterThan(0);
         assertThat(jeff.getName()).isEqualTo("Jeff");
-        Optional<PersonEntity> optionalActual = personDAO.findById(jeff.getId());
-        assertThat(optionalActual.isPresent()).isTrue();
-        PersonEntity actual = optionalActual.get();
+        PersonEntity actual = personDAO.findById(jeff.getId());
+        assertThat(actual).isNotNull();
         assertThat(actual.getId()).isEqualTo(jeff.getId());
         assertThat(actual.getName()).isEqualTo(jeff.getName());
         assertThat(actual.getAddress()).isEqualTo(jeff.getAddress());
@@ -49,14 +47,13 @@ public class PersonDAOTest extends AbstractDAOTest {
     @Test
     public void findById() {
         PersonEntity jeff = personDAO.create("Jeff", "Near the old shore");
-        Optional<PersonEntity> optionalFound = personDAO.findById(jeff.getId());
-        assertThat(optionalFound.isPresent()).isTrue();
-        PersonEntity found = optionalFound.get();
+        PersonEntity found = personDAO.findById(jeff.getId());
+        assertThat(found).isNotNull();
         assertThat(jeff.getName()).isEqualTo(found.getName());
         assertThat(jeff.getAddress()).isEqualTo(found.getAddress());
 
-        Optional<PersonEntity> optionalNotFound = personDAO.findById((long) -1);
-        assertThat(optionalNotFound.isPresent()).isFalse();
+        PersonEntity notFound = personDAO.findById((long) -1);
+        assertThat(notFound).isNull();
     }
 
     @Test(expected = ConstraintViolationException.class)

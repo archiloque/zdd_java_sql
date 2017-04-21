@@ -19,7 +19,6 @@ import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.util.ArrayList;
-import java.util.Optional;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.junit.Assert.fail;
@@ -79,7 +78,7 @@ public class PersonResourceTest {
     @Test
     public void testFindByIdFound() {
         PersonEntity personEntity = createPersonEntity(1L, "John Doe", "Near the shore");
-        when(dao.findById(1L)).thenReturn(Optional.of(personEntity));
+        when(dao.findById(1L)).thenReturn(personEntity);
         Person actual = resources.client().target("/v1/people/1").request().get(Person.class);
         assertThat(actual.getId())
                 .isEqualTo(personEntity.getId());
@@ -128,7 +127,7 @@ public class PersonResourceTest {
 
     @Test
     public void testFindByIdNotFound() {
-        when(dao.findById(1L)).thenReturn(Optional.empty());
+        when(dao.findById(1L)).thenReturn(null);
         try {
             resources.client().target("/v1/people/1").request().get(ErrorResult.class);
             fail();
@@ -141,7 +140,7 @@ public class PersonResourceTest {
     @Test
     public void testDeleteFound() {
         PersonEntity personEntity = createPersonEntity(1L, "John Doe", "Near the shore");
-        when(dao.findById(1L)).thenReturn(Optional.of(personEntity));
+        when(dao.findById(1L)).thenReturn(personEntity);
         Response response = resources.client().target("/v1/people/1").request().delete();
         assertThat(response.getStatus()).isEqualTo(Response.Status.NO_CONTENT.getStatusCode());
         verify(dao).findById(1L);
@@ -150,7 +149,7 @@ public class PersonResourceTest {
 
     @Test
     public void testDeleteNotFound() {
-        when(dao.findById(1L)).thenReturn(Optional.empty());
+        when(dao.findById(1L)).thenReturn(null);
         try {
             resources.client().target("/v1/people/1").request().delete(ErrorResult.class);
             fail();
@@ -163,7 +162,7 @@ public class PersonResourceTest {
     @Test
     public void testUpdateOk() {
         PersonEntity personEntity1 = createPersonEntity(1L, "John Doe", "Near the shore");
-        when(dao.findById(1L)).thenReturn(Optional.of(personEntity1));
+        when(dao.findById(1L)).thenReturn(personEntity1);
 
         PersonEntity personEntity2 = createPersonEntity(1L, "John Doea", "Near the shorea");
         when(dao.update(personEntity2)).thenReturn(personEntity2);
@@ -190,7 +189,7 @@ public class PersonResourceTest {
     public void testUpdateKoNotFound() {
         Person person = new Person(1, "John Doe", "Near the shore");
 
-        when(dao.findById(1L)).thenReturn(Optional.empty());
+        when(dao.findById(1L)).thenReturn(null);
         try {
             resources.
                     client().

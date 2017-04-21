@@ -1,6 +1,5 @@
 package com.octo.zdd_java_sql.api.v1;
 
-import com.octo.zdd_java_sql.api.AbstractRepresentationTest;
 import org.junit.Test;
 
 import static io.dropwizard.testing.FixtureHelpers.fixture;

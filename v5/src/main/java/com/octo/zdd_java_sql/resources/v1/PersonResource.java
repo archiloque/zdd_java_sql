@@ -25,7 +25,6 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.net.URI;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Path("/v1/people")
@@ -65,9 +64,8 @@ public class PersonResource {
     @NotNull
     public Response getPerson(@PathParam("id") LongParam personId) {
         // lock to ensure the address are not updated by the migration script
-        Optional<PersonEntity> optionalPersonEntity = personDAO.findByIdWithJoin(personId.get());
-        if (optionalPersonEntity.isPresent()) {
-            PersonEntity personEntity = optionalPersonEntity.get();
+        PersonEntity personEntity = personDAO.findByIdWithJoin(personId.get());
+        if (personEntity != null) {
             return Response.status(Response.Status.OK).entity(personFromEntity(personEntity, null)).build();
         } else {
             return createPersonNotFoundResponse();
@@ -79,9 +77,9 @@ public class PersonResource {
     @UnitOfWork
     @NotNull
     public Response deletePerson(@PathParam("id") LongParam personId) {
-        Optional<Response> response = ResourceHelper.deletePerson(personId, personDAO, addressDAO);
-        if (response.isPresent()) {
-            return response.get();
+        Response response = ResourceHelper.deletePerson(personId, personDAO, addressDAO);
+        if (response != null) {
+            return response;
         } else {
             return createPersonNotFoundResponse();
         }
@@ -96,14 +94,13 @@ public class PersonResource {
     public Response updatePerson(
             @PathParam("id") LongParam personId,
             @NotNull Person person) {
-        Optional<Response> validationResponse = validatePerson(person);
-        if (validationResponse.isPresent()) {
-            return validationResponse.get();
+        Response validationResponse = validatePerson(person);
+        if (validationResponse != null) {
+            return validationResponse;
         }
 
-        Optional<PersonEntity> optionalPersonEntity = personDAO.findByIdWithLock(personId.get());
-        if (optionalPersonEntity.isPresent()) {
-            PersonEntity personEntity = optionalPersonEntity.get();
+        PersonEntity personEntity = personDAO.findByIdWithLock(personId.get());
+        if (personEntity != null) {
             personEntity.setName(person.getName());
             personEntity = personDAO.update(personEntity);
 
@@ -125,9 +122,9 @@ public class PersonResource {
     @UnitOfWork
     @NotNull
     public Response addPerson(@NotNull Person person) {
-        Optional<Response> validationResponse = validatePerson(person);
-        if (validationResponse.isPresent()) {
-            return validationResponse.get();
+        Response validationResponse = validatePerson(person);
+        if (validationResponse != null) {
+            return validationResponse;
         }
         PersonEntity personEntity = personDAO.create(person.getName());
         AddressEntity addressEntity = null;
@@ -149,9 +146,9 @@ public class PersonResource {
         if (addressEntity != null) {
             address = addressEntity.getAddress();
         } else {
-            Optional<AddressEntity> optionalAddressEntity = getFirstAddress(personEntity);
-            if (optionalAddressEntity.isPresent()) {
-                address = optionalAddressEntity.get().getAddress();
+            addressEntity = getFirstAddress(personEntity);
+            if (addressEntity != null) {
+                address = addressEntity.getAddress();
             } else {
                 address = null;
             }
@@ -177,14 +174,12 @@ public class PersonResource {
         return new Person(personEntity.getId(), personEntity.getName(), address);
     }
 
-
-    private
-    @NotNull
-    Optional<Response> validatePerson(@NotNull Person person) {
+    @Nullable
+    private Response validatePerson(@NotNull Person person) {
         if (person.getName() == null) {
-            return Optional.of(Response.status(Response.Status.BAD_REQUEST).entity(new Error("Name is missing")).build());
+            return Response.status(Response.Status.BAD_REQUEST).entity(new Error("Name is missing")).build();
         } else {
-            return Optional.empty();
+            return null;
         }
     }
 
@@ -193,11 +188,10 @@ public class PersonResource {
         return Response.status(Response.Status.NOT_FOUND).entity(new ErrorResult(Response.Status.NOT_FOUND, "Person not found")).build();
     }
 
-    @NotNull
-    private Optional<AddressEntity> getFirstAddress(PersonEntity person) {
+    @Nullable
+    private AddressEntity getFirstAddress(PersonEntity person) {
         List<AddressEntity> addressesEntities = addressDAO.findByPerson(person);
-        AddressEntity addressEntity = addressesEntities.isEmpty() ? null : addressesEntities.get(0);
-        return Optional.ofNullable(addressEntity);
+        return addressesEntities.isEmpty() ? null : addressesEntities.get(0);
     }
 
 
